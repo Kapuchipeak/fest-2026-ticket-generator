@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fest 2026 - Digital Pass & Ticket Generator</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: { brand: { 500: '#8b5cf6', 600: '#7c3aed', 700: '#6d28d9' } }
+        }
+      }
+    }
+  </script>
+
+  <!-- External Stylesheets -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" />
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Custom Styles for Balanced AceBuilder Card Proportions -->
+  <style>
+    .perspective-1000 { perspective: 1000px; }
+    .spotlight-card { transform-style: preserve-3d; }
+    
+    /* Balanced 2x2 Grid Layout */
+    .ace-grid-2x2 {
+      display: grid;
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+      gap: 1.25rem;
+    }
+    @media (min-width: 640px) {
+      .ace-grid-2x2 { 
+        grid-template-columns: repeat(2, minmax(0, 1fr)); 
+      }
+    }
+
+    /* Precision Glass Cards for AceBuilder Compact Proportions */
+    .ace-card-glass {
+      background: rgba(17, 24, 39, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .ace-card-glass:hover {
+      transform: translateY(-4px);
+      border-color: rgba(139, 92, 246, 0.4);
+      box-shadow: 0 10px 25px -8px rgba(124, 58, 237, 0.25);
+    }
+  </style>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col font-sans transition-colors duration-200 overflow-x-hidden">
+
+  <!-- Custom GSAP Floating Cursor Elements -->
+  <div id="custom-cursor" class="fixed top-0 left-0 w-4 h-4 bg-brand-500 rounded-full pointer-events-none z-[9999] opacity-0 transition-transform duration-75"></div>
+  <div id="custom-cursor-follower" class="fixed top-0 left-0 w-10 h-10 border-2 border-brand-500/50 rounded-full pointer-events-none z-[9998] opacity-0 transition-transform duration-100"></div>
+
+  <!-- Header Navigation Bar -->
+  <header class="sticky top-0 z-50 bg-gray-900/80 backdrop-blur-md border-b border-gray-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-2 cursor-pointer" onclick="switchTab('home')">
+        <i data-lucide="ticket" class="w-7 h-7 text-brand-600"></i>
+        <span class="text-xl font-bold bg-gradient-to-r from-brand-600 to-pink-500 bg-clip-text text-transparent">Fest 2026</span>
+      </div>
+      
+      <nav class="flex space-x-1 sm:space-x-4">
+        <button id="tab-btn-home" onclick="switchTab('home')" class="magnetic-btn nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-brand-600 bg-gray-800">Home</button>
+        <button id="tab-btn-generate" onclick="switchTab('generate')" class="magnetic-btn nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-gray-300 hover:text-brand-600">Generate Ticket</button>
+        <button id="tab-btn-passes" onclick="switchTab('passes')" class="magnetic-btn nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-gray-300 hover:text-brand-600">My Passes</button>
+      </nav>
+
+      <button id="theme-toggle-btn" onclick="toggleDarkMode()" class="magnetic-btn p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 transition">
+        <i id="theme-icon" data-lucide="moon" class="w-5 h-5"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-16">
+    
+    <!-- Tab 1: Home Page -->
+    <section id="panel-home" class="space-y-16">
+
+      <!-- Hero Banner -->
+      <div id="hero-banner-card" class="spotlight-card relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-purple-950 to-indigo-950 text-white p-8 sm:p-12 shadow-2xl border border-purple-500/20">
+        <canvas id="hero-particle-canvas" data-depth="0.02" class="absolute inset-0 w-full h-full pointer-events-none z-0 opacity-80"></canvas>
+        <div data-depth="0.05" class="hero-parallax-layer hero-bg-glow absolute -right-16 -top-16 w-80 h-80 bg-pink-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div data-depth="0.05" class="hero-parallax-layer hero-bg-glow absolute -left-16 -bottom-16 w-80 h-80 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div data-depth="0.01" class="hero-parallax-layer relative z-10 max-w-2xl space-y-5">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-pink-300 bg-pink-500/20 border border-pink-500/30 rounded-full backdrop-blur-md">
+              <span class="w-2 h-2 rounded-full bg-pink-400 animate-pulse"></span> Official Fest 2026 Portal
+            </span>
+          </div>
+
+          <h1 class="text-4xl sm:text-6xl font-black tracking-tight leading-none">
+            The Ultimate <span class="bg-gradient-to-r from-pink-400 via-amber-300 to-indigo-300 bg-clip-text text-transparent">Campus Festival</span> Experience
+          </h1>
+
+          <p class="text-gray-300 text-base sm:text-lg leading-relaxed">
+            3 days of live pro-nights, gaming arenas, inclusive community zones, and vibrant food stalls. Custom build your pass and lock in your festival experience.
+          </p>
+
+          <div class="pt-2 flex flex-wrap items-center gap-4">
+            <button onclick="switchTab('generate')" class="magnetic-btn px-7 py-3.5 bg-gradient-to-r from-brand-600 to-pink-600 hover:from-brand-500 hover:to-pink-500 text-white font-bold rounded-xl shadow-lg hover:shadow-pink-500/25 transition duration-200 flex items-center gap-2">
+              <i data-lucide="sparkles"></i> Build Your Pass Now
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stage Lineup Section (Proportional 2x2 AceBuilder Compact Grid) -->
+      <div data-aos="fade-up" class="space-y-6">
+        <div class="text-center max-w-xl mx-auto space-y-1.5">
+          <span class="text-xs font-bold text-brand-500 uppercase tracking-widest px-3 py-0.5 rounded-full bg-brand-500/10 border border-brand-500/20">Stage Lineup</span>
+          <h2 class="text-2xl sm:text-3xl font-black">Featured Pro-Nights</h2>
+          <p class="text-xs sm:text-sm text-gray-400">Experience world-class performances across three electrifying nights.</p>
+        </div>
+
+        <div id="home-artists-grid" class="ace-grid-2x2 max-w-4xl mx-auto">
+          
+          <!-- Element 1: ElectroPulse -->
+          <div class="ace-card-glass rounded-2xl p-4 flex items-center gap-4 group">
+            <div class="relative w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 overflow-hidden rounded-xl bg-gray-800">
+              <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=300" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+              <span class="absolute top-1.5 left-1.5 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-purple-900/90 text-purple-200 border border-purple-500/30 backdrop-blur-md">Headliner</span>
+            </div>
+            <div class="flex-grow min-w-0 space-y-1">
+              <h3 class="font-bold text-base text-white group-hover:text-brand-400 transition truncate">ElectroPulse</h3>
+              <p class="text-xs text-gray-400 line-clamp-1">Synthwave & Electronic DJ Set</p>
+              <div class="pt-2 border-t border-gray-800/80 flex items-center justify-between text-[11px] text-gray-400">
+                <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3 text-brand-500"></i> Day 1</span>
+                <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-brand-500"></i> 09:00 PM</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Element 2: The Resonance -->
+          <div class="ace-card-glass rounded-2xl p-4 flex items-center gap-4 group">
+            <div class="relative w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 overflow-hidden rounded-xl bg-gray-800">
+              <img src="https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=300" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+              <span class="absolute top-1.5 left-1.5 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-pink-900/90 text-pink-200 border border-pink-500/30 backdrop-blur-md">Rock Night</span>
+            </div>
+            <div class="flex-grow min-w-0 space-y-1">
+              <h3 class="font-bold text-base text-white group-hover:text-brand-400 transition truncate">The Resonance</h3>
+              <p class="text-xs text-gray-400 line-clamp-1">Alternative & Indie Rock Band</p>
+              <div class="pt-2 border-t border-gray-800/80 flex items-center justify-between text-[11px] text-gray-400">
+                <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3 text-brand-500"></i> Day 2</span>
+                <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-brand-500"></i> 08:30 PM</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Element 3: Aura Vibe -->
+          <div class="ace-card-glass rounded-2xl p-4 flex items-center gap-4 group">
+            <div class="relative w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 overflow-hidden rounded-xl bg-gray-800">
+              <img src="https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=300" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+              <span class="absolute top-1.5 left-1.5 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-amber-900/90 text-amber-200 border border-amber-500/30 backdrop-blur-md">EDM Special</span>
+            </div>
+            <div class="flex-grow min-w-0 space-y-1">
+              <h3 class="font-bold text-base text-white group-hover:text-brand-400 transition truncate">Aura Vibe</h3>
+              <p class="text-xs text-gray-400 line-clamp-1">Ambient Electronic & Bass</p>
+              <div class="pt-2 border-t border-gray-800/80 flex items-center justify-between text-[11px] text-gray-400">
+                <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3 text-brand-500"></i> Day 3</span>
+                <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-brand-500"></i> 10:00 PM</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Element 4: Symphony Night (Newly Added Event) -->
+          <div class="ace-card-glass rounded-2xl p-4 flex items-center gap-4 group">
+            <div class="relative w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 overflow-hidden rounded-xl bg-gray-800">
+              <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+              <span class="absolute top-1.5 left-1.5 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-cyan-900/90 text-cyan-200 border border-cyan-500/30 backdrop-blur-md">Acoustic</span>
+            </div>
+            <div class="flex-grow min-w-0 space-y-1">
+              <h3 class="font-bold text-base text-white group-hover:text-brand-400 transition truncate">Symphony Night</h3>
+              <p class="text-xs text-gray-400 line-clamp-1">Orchestral Fusion & Vocal Ensemble</p>
+              <div class="pt-2 border-t border-gray-800/80 flex items-center justify-between text-[11px] text-gray-400">
+                <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3 text-brand-500"></i> Day 2</span>
+                <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-brand-500"></i> 06:00 PM</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Event Schedule Timeline Container -->
+      <div data-aos="fade-up" class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-gray-900 via-purple-950 to-gray-900 border border-gray-800 p-8 sm:p-12 shadow-2xl space-y-8">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-800/80 pb-6">
+          <div class="space-y-1">
+            <span class="text-xs font-bold text-brand-500 uppercase tracking-widest">Festival Program</span>
+            <h2 class="text-2xl sm:text-3xl font-black">Event Schedule Timeline</h2>
+            <p class="text-xs sm:text-sm text-gray-400">Select a day to review active sessions and mainstage schedules.</p>
+          </div>
+          <div class="flex space-x-2 bg-gray-950/60 p-1.5 rounded-xl border border-gray-800 self-start md:self-auto">
+            <button onclick="filterScheduleDay(1)" id="day-btn-1" class="day-filter-btn px-5 py-2 rounded-lg text-xs font-bold bg-brand-600 text-white transition">Day 1</button>
+            <button onclick="filterScheduleDay(2)" id="day-btn-2" class="day-filter-btn px-5 py-2 rounded-lg text-xs font-bold bg-transparent text-gray-400 hover:text-white transition">Day 2</button>
+            <button onclick="filterScheduleDay(3)" id="day-btn-3" class="day-filter-btn px-5 py-2 rounded-lg text-xs font-bold bg-transparent text-gray-400 hover:text-white transition">Day 3</button>
+          </div>
+        </div>
+
+        <!-- Timeline Display Slot -->
+        <div id="timeline-container" class="grid gap-4 md:grid-cols-3"></div>
+      </div>
+
+      <!-- Games Showcase -->
+      <div data-aos="fade-up" class="space-y-6">
+        <div class="flex justify-between items-end border-b pb-3 border-gray-800">
+          <div>
+            <span class="text-xs font-bold text-brand-500 uppercase tracking-widest">Attractions</span>
+            <h2 class="text-2xl font-black">Games & Activities</h2>
+          </div>
+        </div>
+        <div id="home-games-grid" class="grid sm:grid-cols-3 gap-6"></div>
+      </div>
+
+    </section>
+
+    <!-- Tab 2: Pass Generator Wizard -->
+    <section id="panel-generate" class="hidden space-y-8">
+      <div class="max-w-3xl mx-auto">
+        <div class="flex justify-between text-xs font-semibold text-gray-400 mb-2">
+          <span>1. Details</span> <span>2. Lineup & Activities</span> <span>3. Pass Tier</span> <span>4. Custom Pass</span>
+        </div>
+        <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+          <div id="step-progress" class="bg-brand-600 h-full w-1/4 transition-all duration-300"></div>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 space-y-8 bg-gray-900 p-6 rounded-2xl border border-gray-800">
+          
+          <!-- Step 1: User Details (Updated with Gender Dropdown & Dynamic Avatar Preview) -->
+          <div id="form-step-1" class="step-container space-y-4">
+            <h2 class="text-xl font-bold border-b pb-2 border-gray-800 flex items-center gap-2"><i data-lucide="user" class="text-brand-600"></i> Personal Information</h2>
+            <div>
+              <label class="block text-sm font-medium mb-1">Full Name *</label>
+              <input type="text" id="input-name" placeholder="e.g. Alex Johnson" class="w-full p-2.5 rounded-lg border bg-gray-950 border-gray-800 focus:ring-2 focus:ring-brand-500 outline-none">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Institute Roll Number *</label>
+              <input type="text" id="input-roll" placeholder="e.g. 24CS10042" class="w-full p-2.5 rounded-lg border bg-gray-950 border-gray-800 focus:ring-2 focus:ring-brand-500 outline-none">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Gender *</label>
+              <select id="input-gender" class="w-full p-2.5 rounded-lg border bg-gray-950 border-gray-800 text-gray-100 focus:ring-2 focus:ring-brand-500 outline-none">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other" selected>Other / Non-Binary</option>
+              </select>
+              <div class="mt-3 flex items-center gap-3">
+                <div id="avatar-preview-box"></div>
+                <span class="text-xs text-gray-400">Live dynamic avatar preview</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Selections -->
+          <div id="form-step-2" class="step-container space-y-6 hidden">
+            <div class="relative">
+              <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3.5 text-gray-400"></i>
+              <input type="text" id="filter-search" placeholder="Search lineup or activities..." class="w-full pl-9 p-2.5 text-sm rounded-lg border bg-gray-950 border-gray-800 focus:ring-2 focus:ring-brand-500 outline-none">
+            </div>
+            <div class="space-y-3">
+              <h3 class="text-md font-bold flex items-center gap-2"><i data-lucide="music" class="text-brand-600"></i> Pro-Nights Lineup</h3>
+              <div id="artists-grid" class="grid sm:grid-cols-2 gap-3"></div>
+            </div>
+            <div class="space-y-3">
+              <h3 class="text-md font-bold flex items-center gap-2"><i data-lucide="utensils" class="text-brand-600"></i> Food & Beverages</h3>
+              <div id="food-list" class="space-y-2"></div>
+            </div>
+            <div class="space-y-3">
+              <h3 class="text-md font-bold flex items-center gap-2"><i data-lucide="gamepad-2" class="text-brand-600"></i> Games & Activities</h3>
+              <div id="games-list" class="space-y-2"></div>
+            </div>
+          </div>
+
+          <!-- Step 3: Pass Category & Theme Selection -->
+          <div id="form-step-3" class="step-container space-y-6 hidden">
+            <div class="space-y-3">
+              <h2 class="text-xl font-bold border-b pb-2 border-gray-800 flex items-center gap-2"><i data-lucide="shield-check" class="text-brand-600"></i> Pass Category</h2>
+              <div id="pass-grid" class="grid sm:grid-cols-3 gap-4"></div>
+            </div>
+
+            <div class="space-y-3 pt-2">
+              <h3 class="text-md font-bold flex items-center gap-2"><i data-lucide="palette" class="text-brand-600"></i> Ticket Visual Theme</h3>
+              <div class="grid grid-cols-3 gap-3">
+                <button onclick="setTicketTheme('cyberpunk')" id="theme-btn-cyberpunk" class="theme-select-btn p-3 rounded-xl border-2 border-brand-500 bg-gray-950 text-white text-xs font-bold text-center transition">Cyberpunk</button>
+                <button onclick="setTicketTheme('gold')" id="theme-btn-gold" class="theme-select-btn p-3 rounded-xl border border-gray-800 bg-gradient-to-r from-amber-900 to-yellow-900 text-amber-200 text-xs font-bold text-center transition">Gold VIP</button>
+                <button onclick="setTicketTheme('sunset')" id="theme-btn-sunset" class="theme-select-btn p-3 rounded-xl border border-gray-800 bg-gradient-to-r from-pink-900 to-rose-900 text-pink-200 text-xs font-bold text-center transition">Sunset</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4: Rendered Pass Container -->
+          <div id="form-step-4" class="step-container space-y-6 hidden">
+            <h2 class="text-xl font-bold border-b pb-2 border-gray-800">Your Custom Fest Pass</h2>
+            
+            <div id="ticket-card" class="bg-gradient-to-br from-gray-900 via-purple-950 to-slate-900 text-white rounded-2xl p-6 shadow-2xl relative overflow-hidden border border-purple-500/30 transition-all duration-300 ticket-theme-cyberpunk">
+              <div class="flex justify-between items-start border-b border-gray-700/60 pb-4 mb-4">
+                <div>
+                  <h3 class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">FEST 2026</h3>
+                  <p class="text-xs text-gray-400">Official Pass</p>
+                </div>
+                <span id="ticket-pass-badge" class="px-3 py-1 rounded-full text-xs font-bold uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40">GOLD</span>
+              </div>
+              <div class="flex flex-col sm:flex-row gap-4 items-center mb-4">
+                <div id="ticket-avatar-slot"></div>
+                <div class="text-center sm:text-left space-y-1">
+                  <h4 id="ticket-name" class="text-xl font-bold">---</h4>
+                  <p id="ticket-roll" class="text-xs text-gray-400 font-mono">---</p>
+                  <p class="text-xs text-gray-300">Gender: <span id="ticket-gender-val" class="font-semibold text-brand-300">Other</span></p>
+                  <p class="text-xs text-purple-300 font-semibold">ID: <span id="ticket-id" class="font-mono">---</span></p>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-xs border-t border-b border-gray-700/60 py-3 my-3 text-gray-300">
+                <div><span class="text-gray-500">Artists:</span> <p id="ticket-artists-list" class="font-medium truncate">None</p></div>
+                <div><span class="text-gray-500">Activities:</span> <p id="ticket-activities-list" class="font-medium truncate">None</p></div>
+              </div>
+              <div class="flex items-center justify-between pt-2">
+                <div>
+                  <span class="text-xs text-gray-400 block">Total Amount Paid</span>
+                  <span id="ticket-final-price" class="text-2xl font-black text-green-400">₹0</span>
+                </div>
+                <div id="qrcode" class="bg-white p-1.5 rounded-lg shadow-md"></div>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-4">
+              <button onclick="downloadTicketPNG()" class="magnetic-btn flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition">
+                <i data-lucide="download"></i> Download PNG
+              </button>
+              <button onclick="saveCurrentPass()" class="magnetic-btn flex-1 bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition">
+                <i data-lucide="bookmark"></i> Save to My Passes
+              </button>
+            </div>
+          </div>
+
+          <!-- Wizard Navigation -->
+          <div class="flex justify-between pt-4 border-t border-gray-800">
+            <button id="btn-prev" onclick="navigateStep(-1)" class="magnetic-btn px-5 py-2.5 rounded-lg border border-gray-700 hover:bg-gray-800 font-medium text-sm transition invisible">Previous</button>
+            <button id="btn-next" onclick="navigateStep(1)" class="magnetic-btn px-5 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-medium text-sm transition">Next Step</button>
+          </div>
+
+        </div>
+
+        <!-- Sidebar Summary -->
+        <div class="lg:col-span-1">
+          <div class="sticky top-24 bg-gray-900 p-6 rounded-2xl border border-gray-800 space-y-4">
+            <h3 class="text-lg font-bold border-b pb-2 border-gray-800 flex items-center gap-2"><i data-lucide="receipt"></i> Dynamic Price Breakdown</h3>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between text-gray-300">
+                <span id="summary-pass-name">Bronze Pass</span>
+                <span id="summary-pass-price">₹499</span>
+              </div>
+              <div class="flex justify-between text-gray-300">
+                <span>Food Subtotal</span>
+                <span id="summary-food-price">₹0</span>
+              </div>
+              <div class="flex justify-between text-gray-300">
+                <span>Activities Subtotal</span>
+                <span id="summary-games-price">₹0</span>
+              </div>
+              <div id="summary-discount-row" class="flex justify-between text-green-500 font-semibold hidden">
+                <span>Discount Applied</span>
+                <span id="summary-discount-price">-₹0</span>
+              </div>
+            </div>
+
+            <!-- Coupon Input Block -->
+            <div class="pt-2 border-t border-gray-800 space-y-2">
+              <label class="block text-xs font-semibold text-gray-400">Promo / Coupon Code</label>
+              <div class="flex gap-2">
+                <input type="text" id="input-coupon" placeholder="Try FEST20 or FOOD10" class="w-full p-2 text-xs rounded-lg border bg-gray-950 border-gray-800 uppercase outline-none">
+                <button onclick="applyCouponCode()" class="magnetic-btn px-3 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-lg transition">Apply</button>
+              </div>
+              <p id="coupon-message" class="text-xs font-medium"></p>
+            </div>
+
+            <div class="border-t pt-3 border-gray-800 flex justify-between items-center">
+              <span class="font-bold text-base">Total Price</span>
+              <span id="summary-total-price" class="font-black text-xl text-brand-400">₹499</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 3: Saved Passes Archive -->
+    <section id="panel-passes" class="hidden space-y-6">
+      <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="archive"></i> Saved Passes Archive</h2>
+        <button onclick="clearPassesArchive()" class="text-xs text-red-500 hover:underline flex items-center gap-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Clear Archive</button>
+      </div>
+      <div id="passes-archive-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </section>
+
+  </main>
+
+  <!-- External Library Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+
+  <!-- App Custom JS Modules -->
+  <script src="js/data.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/micro-interactions.js"></script>
+  <script src="js/tab-home.js"></script>
+  <script src="js/tab-ticket.js"></script>
+  <script src="js/tab-generate.js"></script>
+  <script src="js/tab-passes.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof AOS !== 'undefined') {
+        AOS.init({ duration: 750, once: true, easing: 'ease-out' });
+      }
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    });
+  </script>
+</body>
+</html>

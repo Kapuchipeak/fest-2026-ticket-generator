@@ -1,0 +1,61 @@
+/* Custom Animations and Theme Preset Styles */
+.step-container {
+  animation: fadeIn 0.25s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.item-card {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.item-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -10px rgba(124, 58, 237, 0.25);
+}
+
+/* Enable smooth 3D space rendering for tilt elements */
+.ace-card-glass, 
+.spotlight-card, 
+#home-artists-grid > div, 
+#home-games-grid > div {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* Custom Card Background Themes */
+.ticket-theme-cyberpunk {
+  background: linear-gradient(135deg, #090d16 0%, #1e1035 50%, #050510 100%) !important;
+  border-color: rgba(139, 92, 246, 0.4) !important;
+}
+
+.ticket-theme-gold {
+  background: linear-gradient(135deg, #1d1202 0%, #3a2505 50%, #150d02 100%) !important;
+  border-color: rgba(245, 158, 11, 0.5) !important;
+}
+
+.ticket-theme-sunset {
+  background: linear-gradient(135deg, #230818 0%, #4a102a 50%, #14040e 100%) !important;
+  border-color: rgba(244, 63, 94, 0.5) !important;
+}
+
+/* 1. Parent container perspective for 3D depth */
+#home-artists-grid,
+#home-games-grid,
+.spotlight-card-container {
+  perspective: 1000px;
+}
+
+/* 2. Glass Cards 3D setup */
+.ace-card-glass, 
+.spotlight-card, 
+#home-artists-grid > div, 
+#home-games-grid > div {
+  transform-style: preserve-3d;
+  will-change: transform;
+  /* CRITICAL: Remove CSS transition on 'transform' so CSS doesn't fight GSAP updates */
+  transition: border-color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease !important;
+}
